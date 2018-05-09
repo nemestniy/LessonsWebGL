@@ -22,6 +22,10 @@ var StartWebGL = function(vertexShaderText, fragmentShaderText){
         return;
     }
     
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    gl.viewport(0,0,window.innerWidth, window.innerHeight);
+    
     var vertexShader = gl.createShader(gl.VERTEX_SHADER);
     var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
     
@@ -42,9 +46,39 @@ var StartWebGL = function(vertexShaderText, fragmentShaderText){
         conosle.error("Shader error info: " + gl.getShaderInfoLog(fragmentShader));
     }
     
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    gl.viewport(0,0,window.innerWidth, window.innerHeight);
+    var program = gl.createProgram();
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+    
+    gl.linkProgram(program);
+    gl.validateProgram(program);
+    
+    if(!gl.getProgramParameter(program, gl.VALIDATE_STATUS)){
+        console.error("Error validating program: ", gl.getProgramInfoLog());
+        return;
+    }
+    
+    var vertexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+    
+    var vertexArray = [
+        0.0, 0.5,
+        0.5, -0.5,
+        -0.5, -0.5
+    ]
+    
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexArray), gl.STATIC_DRAW);
+    
+    var positionAttribLocation = gl.getAttribLocation(program, "vertexPosition");
+    
+    gl.vertexAttribPointer(positionAttribLocation, 2, gl.FLOAT, gl.FALSE, 2 * Float32Array.BYTES_PER_ELEMENT, 0 * Float32Array.BYTES_PER_ELEMENT);
+    
+    gl.enableVertexAttribArray(positionAttribLocation);
+    
+    gl.clearColor(0.75, 0.9, 1.0, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.useProgram(program);
+    gl.drawArrays(gl.TRIANGLES, 0 ,3);
 }
 
 document.addEventListener("DOMContentLoaded", function(){
