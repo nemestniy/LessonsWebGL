@@ -36,14 +36,14 @@ var StartWebGL = function(vertexShaderText, fragmentShaderText){
     
     if(!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)){
         alert("Error compile shader!");
-        conosle.error("Shader error info: " + gl.etShaderInfoLog(vertexShader));
+        console.error("Shader error info: " + gl.getShaderInfoLog(vertexShader));
     }
     
     gl.compileShader(fragmentShader);
     
     if(!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)){
         alert("Error compile shader!");
-        conosle.error("Shader error info: " + gl.getShaderInfoLog(fragmentShader));
+        console.error("Shader error info: " + gl.getShaderInfoLog(fragmentShader));
     }
     
     var program = gl.createProgram();
@@ -54,7 +54,7 @@ var StartWebGL = function(vertexShaderText, fragmentShaderText){
     gl.validateProgram(program);
     
     if(!gl.getProgramParameter(program, gl.VALIDATE_STATUS)){
-        console.error("Error validating program: ", gl.getProgramInfoLog());
+        console.error("Error validating program: ", gl.getProgramInfoLog(program));
         return;
     }
     
@@ -62,24 +62,47 @@ var StartWebGL = function(vertexShaderText, fragmentShaderText){
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     
     var vertexArray = [
-        0.0, 0.5,
-        0.5, -0.5,
-        -0.5, -0.5
-    ]
+        0.0, 0.5, 0.0, 0.5, 1.0, 0.0,
+        0.5, -0.5, 0.0, 1.0, 0.4, 0.4,
+        -0.5, -0.5, 0.0, 0.7, 1.0, 0.7,
+        
+        0.0, -0.5, 0.5, 1.0, 0.0, 0.0,
+        0.5, 0.5, 0.5, 1.0, 0.0, 0.0,
+        -0.5, 0.5, 0.5, 1.0, 0.0, 0.0
+    ];
     
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexArray), gl.STATIC_DRAW);
     
     var positionAttribLocation = gl.getAttribLocation(program, "vertexPosition");
     
-    gl.vertexAttribPointer(positionAttribLocation, 2, gl.FLOAT, gl.FALSE, 2 * Float32Array.BYTES_PER_ELEMENT, 0 * Float32Array.BYTES_PER_ELEMENT);
+    gl.vertexAttribPointer(positionAttribLocation,
+                           3, // Количество элементов на итерацию
+                           gl.FLOAT, //Тип данных
+                           gl.FALSE, // Нормализация 
+                           6 * Float32Array.BYTES_PER_ELEMENT, // Количество эдементов на вершину
+                           0 * Float32Array.BYTES_PER_ELEMENT // Отступ
+                          );
     
     gl.enableVertexAttribArray(positionAttribLocation);
     
-    gl.clearColor(0.75, 0.9, 1.0, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    var colorAttribLocation = gl.getAttribLocation(program, "vertexColor");
+    
+    gl.vertexAttribPointer(colorAttribLocation,
+                           3,
+                           gl.FLOAT,
+                           gl.FALSE,
+                           6 * Float32Array.BYTES_PER_ELEMENT,
+                           3 * Float32Array.BYTES_PER_ELEMENT);
+    
+    gl.enableVertexAttribArray(colorAttribLocation);
+    
+    gl.clearColor(1.0, 1.0, 1.0, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.enable(gl.DEPTH_TEST);
     gl.useProgram(program);
-    gl.drawArrays(gl.TRIANGLES, 0 ,3);
-}
+    gl.drawArrays(gl.TRIANGLES, 0 ,6);
+    
+};
 
 document.addEventListener("DOMContentLoaded", function(){
     InitWebGL();
